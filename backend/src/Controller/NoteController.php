@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Dto\CreateDto\CreateNoteDto;
 use App\Dto\NoteDto;
 use App\Entity\Note;
+use App\Error\ApiError;
 use Doctrine\ORM\EntityManagerInterface;
 use FOS\RestBundle\Controller\AbstractFOSRestController;
 use FOS\RestBundle\Controller\Annotations as Rest;
@@ -41,8 +42,7 @@ class NoteController extends AbstractFOSRestController
         response: 200,
         description: 'Successfull operation.',
         content: new OA\JsonContent(
-            type: 'array',
-            items: new OA\Items(ref: new Model(type: CreateNoteDto::class))
+            ref: new Model(type: CreateNoteDto::class),
         )
     )]
     #[OA\Response(
@@ -52,8 +52,7 @@ class NoteController extends AbstractFOSRestController
     #[OA\RequestBody(
         required: true,
         content: new OA\JsonContent(
-            type: 'array',
-            items: new OA\Items(ref: new Model(type: CreateNoteDto::class))
+            ref: new Model(type: CreateNoteDto::class),
         )
     )]
     public function createNote(Request $request): Response
@@ -97,13 +96,6 @@ class NoteController extends AbstractFOSRestController
             items: new OA\Items(ref: new Model(type: NoteDto::class))
         )
     )]
-    #[OA\RequestBody(
-        required: true,
-        content: new OA\JsonContent(
-            type: 'array',
-            items: new OA\Items(ref: new Model(type: NoteDto::class))
-        )
-    )]
     public function getNotes(): Response
     {
         $notes = $this->entityManager->getRepository(Note::class)->findAll();
@@ -120,13 +112,15 @@ class NoteController extends AbstractFOSRestController
         response: 200,
         description: 'Sucessful operation.',
         content: new OA\JsonContent(
-            type: 'array',
-            items: new OA\Items(ref: new Model(type: NoteDto::class))
+            ref: new Model(type: NoteDto::class),
         )
     )]
     #[OA\Response(
         response: 404,
         description: 'Note not found.',
+        content: new OA\JsonContent(
+            ref: new Model(type: ApiError::class),
+        )
     )]
     public function getNote(int $id): Response
     {
@@ -134,7 +128,8 @@ class NoteController extends AbstractFOSRestController
         if($note != null) {
             $view = $this->view($note, Response::HTTP_OK);
         } else {
-            $view = $this->view(null, Response::HTTP_NOT_FOUND);
+            $apiError = new ApiError(Response::HTTP_NOT_FOUND, "Note not found.");
+            $view = $this->view($apiError, Response::HTTP_NOT_FOUND);
         }
         return $this->handleView($view);
     }
@@ -148,21 +143,22 @@ class NoteController extends AbstractFOSRestController
     #[OA\RequestBody(
         required: true,
         content: new OA\JsonContent(
-            type: 'array',
-            items: new OA\Items(ref: new Model(type: CreateNoteDto::class))
+            ref: new Model(type: CreateNoteDto::class),
         )
     )]
     #[OA\Response(
         response: 200,
         description: 'Sucessful operation.',
         content: new OA\JsonContent(
-            type: 'array',
-            items: new OA\Items(ref: new Model(type: NoteDto::class))
+            ref: new Model(type: NoteDto::class),
         )
     )]
     #[OA\Response(
         response: 404,
         description: 'Note not found.',
+        content: new OA\JsonContent(
+            ref: new Model(type: ApiError::class),
+        )
     )]
     public function updateNote(int $id, Request $request): Response
     {
@@ -193,7 +189,8 @@ class NoteController extends AbstractFOSRestController
                 return $this->handleView($view);
             }
         } else {
-            $view = $this->view(null, Response::HTTP_NOT_FOUND);
+            $apiError = new ApiError(Response::HTTP_NOT_FOUND, "Note not found.");
+            $view = $this->view($apiError, Response::HTTP_NOT_FOUND);
         }
         return $this->handleView($view);
     }
@@ -210,6 +207,9 @@ class NoteController extends AbstractFOSRestController
     #[OA\Response(
         response: 404,
         description: 'Note not found.',
+        content: new OA\JsonContent(
+            ref: new Model(type: ApiError::class),
+        )
     )]
     public function deleteNote(int $id): Response
     {
@@ -219,7 +219,8 @@ class NoteController extends AbstractFOSRestController
             $this->entityManager->flush();
             $view = $this->view(null, Response::HTTP_NO_CONTENT);
         } else {
-            $view = $this->view(null, Response::HTTP_NOT_FOUND);
+            $apiError = new ApiError(Response::HTTP_NOT_FOUND, "Note not found.");
+            $view = $this->view($apiError, Response::HTTP_NOT_FOUND);
         }
         return $this->handleView($view);
     }
