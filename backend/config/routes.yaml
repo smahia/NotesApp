@@ -9,3 +9,7 @@ app.swagger_ui:
     path: /api/doc
     methods: GET
     defaults: { _controller: nelmio_api_doc.controller.swagger_ui }
+
+home:
+    path: /
+    defaults: { _controller: nelmio_api_doc.controller.swagger_ui }
