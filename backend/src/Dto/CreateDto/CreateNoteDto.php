@@ -17,6 +17,18 @@ class CreateNoteDto
     #[OA\Property(type: 'string', default: 'Tag', maxLength: 255, nullable: true)]
     private ?string $tag;
 
+    /**
+     * @param string $title
+     * @param string $content
+     * @param string $tag
+     */
+    public function __construct(string $title, string $content, string $tag)
+    {
+        $this->title = $title;
+        $this->content = $content;
+        $this->tag = $tag;
+    }
+
 
     public function getTag(): ?string
     {

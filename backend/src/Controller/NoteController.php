@@ -6,6 +6,7 @@ use App\Dto\CreateDto\CreateNoteDto;
 use App\Dto\NoteDto;
 use App\Entity\Note;
 use App\Error\ApiError;
+use App\Service\NoteService;
 use Doctrine\ORM\EntityManagerInterface;
 use FOS\RestBundle\Controller\AbstractFOSRestController;
 use FOS\RestBundle\Controller\Annotations as Rest;
@@ -23,11 +24,14 @@ class NoteController extends AbstractFOSRestController
     private EntityManagerInterface $entityManager;
     private ValidatorInterface $validator;
 
+    private NoteService $noteService;
+
     public function __construct(EntityManagerInterface $entityManager,
-                                ValidatorInterface $validator)
+                                ValidatorInterface $validator, NoteService $noteService)
     {
         $this->entityManager = $entityManager;
         $this->validator = $validator;
+        $this->noteService = $noteService;
     }
 
     // https://www.binaryboxtuts.com/php-tutorials/how-to-make-symfony-7-rest-api/
@@ -58,30 +62,22 @@ class NoteController extends AbstractFOSRestController
     public function createNote(Request $request): Response
     {
 
-        $note = new Note();
-        $data = json_decode($request->getContent(), true);
-        $note->setTitle($data['title']);
-        $note->setContent($data['content']);
-        $note->setTag($data['tag']);
+        $createNoteDto = new CreateNoteDto(
+            $request->request->get('title'),
+            $request->request->get('content'),
+            $request->request->get('tag')
+        );
 
-        $errors = $this->validator->validate($note);
+        $result = $this->noteService->createNote($createNoteDto);
 
-        if (count($errors) > 0) {
-            $errorMessages = [];
-            foreach ($errors as $error) {
-                $errorMessages[] = [
-                    'message' => $error->getMessage()
-                ];
-            }
-
-            $jsonErrorMessage = json_encode($errorMessages, JSON_PRETTY_PRINT);
-            return new Response($jsonErrorMessage, Response::HTTP_BAD_REQUEST);
+        if ($result instanceof Note) {
+            $view = $this->view($result, Response::HTTP_CREATED);
         } else {
-            $this->entityManager->persist($note);
-            $this->entityManager->flush();
-            $view = $this->view($data, Response::HTTP_CREATED);
-            return $this->handleView($view);
+            $jsonErrorMessage = json_encode($result, JSON_PRETTY_PRINT);
+            $view = $this->view($result, Response::HTTP_BAD_REQUEST);
         }
+        return $this->handleView($view);
+
     }
 
     /** Get all Notes resource.
