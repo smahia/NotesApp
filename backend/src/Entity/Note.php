@@ -23,10 +23,16 @@ class Note
     private ?string $content = null;
 
     #[ORM\Column(type: Types::DATE_MUTABLE)]
-    private ?\DateTimeInterface $creationDate = null;
+    private ?\DateTimeInterface $creationDate;
 
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $tag = null;
+
+    public function __construct()
+    {
+        $this->creationDate = new \DateTime();
+    }
+
 
     public function getId(): ?int
     {
