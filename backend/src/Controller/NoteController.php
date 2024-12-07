@@ -73,7 +73,6 @@ class NoteController extends AbstractFOSRestController
         if ($result instanceof Note) {
             $view = $this->view($result, Response::HTTP_CREATED);
         } else {
-            $jsonErrorMessage = json_encode($result, JSON_PRETTY_PRINT);
             $view = $this->view($result, Response::HTTP_BAD_REQUEST);
         }
         return $this->handleView($view);
