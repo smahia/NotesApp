@@ -5,18 +5,16 @@ namespace App\Service;
 use App\Dto\CreateDto\CreateNoteDto;
 use App\Entity\Note;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class NoteService
 {
     private EntityManagerInterface $entityManager;
-    private ValidatorInterface $validator;
+    private ValidatorService $validatorService;
 
-    public function __construct(EntityManagerInterface $entityManager,
-                                ValidatorInterface $validator)
+    public function __construct(EntityManagerInterface $entityManager, ValidatorService $validatorService)
     {
         $this->entityManager = $entityManager;
-        $this->validator = $validator;
+        $this->validatorService = $validatorService;
     }
 
     public function createNote(CreateNoteDto $createNoteDto): Note|array
@@ -26,20 +24,12 @@ class NoteService
         $note->setContent($createNoteDto->getContent());
         $note->setTag($createNoteDto->getTag());
 
-        $errors = $this->validator->validate($note);
-        if (count($errors) > 0) {
-            $errorMessages = [];
-            foreach ($errors as $error) {
-                $errorMessages[] = [
-                    'message' => $error->getMessage()
-                ];
-            }
-           return $errorMessages;
+        if($this->validatorService->validate($note) !== []) {
+            return $this->validatorService->validate($note);
         }
 
         $this->entityManager->persist($note);
         $this->entityManager->flush();
-
         return $note;
     }
 }
