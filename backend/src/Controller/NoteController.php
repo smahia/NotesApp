@@ -57,6 +57,7 @@ class NoteController extends AbstractFOSRestController
         $createNoteDto = new CreateNoteDto(
             $request->request->get('title'),
             $request->request->get('content'),
+            $request->request->get('folderId'),
             $request->request->get('tag')
         );
 
@@ -151,6 +152,7 @@ class NoteController extends AbstractFOSRestController
         $createNoteDto = new CreateNoteDto(
             $request->request->get('title'),
             $request->request->get('content'),
+            $request->request->get('folderId'),
             $request->request->get('tag')
         );
 

@@ -28,6 +28,11 @@ class Note
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $tag = null;
 
+    #[ORM\ManyToOne(inversedBy: 'notes')]
+    #[ORM\JoinColumn(nullable: false)]
+    #[Assert\NotNull(message: 'The note must be assigned to a folder.')]
+    private ?Folder $folder = null;
+
     public function __construct()
     {
         $this->creationDate = new \DateTime();
@@ -83,6 +88,18 @@ class Note
     public function setTag(?string $tag): static
     {
         $this->tag = $tag;
+
+        return $this;
+    }
+
+    public function getFolder(): ?Folder
+    {
+        return $this->folder;
+    }
+
+    public function setFolder(?Folder $folder): static
+    {
+        $this->folder = $folder;
 
         return $this;
     }

@@ -12,7 +12,6 @@ class NoteDto
     #[OA\Property(type: 'string', default: 'Title', maxLength: 255, nullable: true)]
     private ?string $title;
 
-    #[Assert\NotBlank(message: 'The content of the note can not be empty.')]
     #[OA\Property(type: 'string', default: 'Content', maxLength: 255, nullable: false)]
     private ?string $content;
 
@@ -21,6 +20,9 @@ class NoteDto
 
     #[OA\Property(type: 'string', default: 'Tag', maxLength: 255, nullable: true)]
     private ?string $tag;
+
+    #[OA\Property(type: 'int', default: 1, nullable: false)]
+    private ?int $folderId;
 
 
     public function getTag(): ?string
@@ -73,5 +75,13 @@ class NoteDto
         $this->creationDate = $creationDate;
     }
 
+    public function getFolderId(): ?int
+    {
+        return $this->folderId;
+    }
 
+    public function setFolderId(?int $folderId): void
+    {
+        $this->folderId = $folderId;
+    }
 }

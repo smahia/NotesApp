@@ -3,6 +3,7 @@
 namespace App\Service;
 
 use App\Dto\CreateDto\CreateNoteDto;
+use App\Entity\Folder;
 use App\Entity\Note;
 use App\Error\ApiError;
 use Doctrine\ORM\EntityManagerInterface;
@@ -21,16 +22,26 @@ class NoteService
 
     /**
      * @param CreateNoteDto $createNoteDto
-     * @return Note|array Return an array of error messages if validation fails, otherwise return the Note entity
+     * @return Note|array|ApiError Return an array of error messages if validation fails,
+     * ApiError if the Folder is not found, or the Note entity
      */
-    public function createNote(CreateNoteDto $createNoteDto): Note|array
+    public function createNote(CreateNoteDto $createNoteDto): Note|array|ApiError
     {
         $note = new Note();
         $note->setTitle($createNoteDto->getTitle());
         $note->setContent($createNoteDto->getContent());
         $note->setTag($createNoteDto->getTag());
 
-        if($this->validatorService->validate($note) !== []) {
+        if ($createNoteDto->getFolderId() != null) {
+            $folder = $this->entityManager->getRepository(Folder::class)->find($createNoteDto->getFolderId());
+            if ($folder != null) {
+                $note->setFolder($folder);
+            } else {
+                return new ApiError(Response::HTTP_NOT_FOUND, "Folder not found.");
+            }
+        }
+
+        if ($this->validatorService->validate($note) !== []) {
             return $this->validatorService->validate($note);
         }
 
@@ -39,7 +50,8 @@ class NoteService
         return $note;
     }
 
-    public function getNotes(): array {
+    public function getNotes(): array
+    {
         return $this->entityManager->getRepository(Note::class)->findAll();
     }
 
@@ -47,7 +59,8 @@ class NoteService
      * @param int $id
      * @return Note|ApiError Return the Note entity if found, otherwise return an ApiError
      */
-    public function getNote(int $id): Note|ApiError {
+    public function getNote(int $id): Note|ApiError
+    {
         $note = $this->entityManager->getRepository(Note::class)->find($id);
         if ($note != null) {
             return $note;
@@ -59,18 +72,28 @@ class NoteService
     /**
      * @param int $id
      * @param CreateNoteDto $createNoteDto
-     * @return Note|ApiError|array Return an array of error messages if validation fails, an ApiError if the Note is not found,
-     * or the Note entity
+     * @return Note|ApiError|array Return an array of error messages if validation fails,
+     * an ApiError if the Note or the Folder is not found, or the Note entity.
      */
-    public function updateNote(int $id, CreateNoteDto $createNoteDto): Note | ApiError | array {
+    public function updateNote(int $id, CreateNoteDto $createNoteDto): Note|ApiError|array
+    {
         $note = $this->entityManager->getRepository(Note::class)->find($id);
-        if($note != null) {
+        if ($note != null) {
 
             $note->setTitle($createNoteDto->getTitle());
             $note->setContent($createNoteDto->getContent());
             $note->setTag($createNoteDto->getTag());
 
-            if($this->validatorService->validate($note) !== []) {
+            if ($createNoteDto->getFolderId() != null) {
+                $folder = $this->entityManager->getRepository(Folder::class)->find($createNoteDto->getFolderId());
+                if ($folder != null) {
+                    $note->setFolder($folder);
+                } else {
+                    return new ApiError(Response::HTTP_NOT_FOUND, "Folder not found.");
+                }
+            }
+
+            if ($this->validatorService->validate($note) !== []) {
                 return $this->validatorService->validate($note);
             } else {
                 $this->entityManager->persist($note);
@@ -86,9 +109,10 @@ class NoteService
      * @param int $id
      * @return ApiError|null Return null if the Note is deleted, otherwise return an ApiError
      */
-    public function deleteNote(int $id): null | ApiError {
+    public function deleteNote(int $id): null|ApiError
+    {
         $note = $this->entityManager->getRepository(Note::class)->find($id);
-        if($note != null) {
+        if ($note != null) {
             $this->entityManager->remove($note);
             $this->entityManager->flush();
             return null;
