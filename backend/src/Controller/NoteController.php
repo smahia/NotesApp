@@ -7,7 +7,6 @@ use App\Dto\NoteDto;
 use App\Entity\Note;
 use App\Error\ApiError;
 use App\Service\NoteService;
-use Doctrine\ORM\EntityManagerInterface;
 use FOS\RestBundle\Controller\AbstractFOSRestController;
 use FOS\RestBundle\Controller\Annotations as Rest;
 use Nelmio\ApiDocBundle\Attribute\Model;
@@ -15,22 +14,15 @@ use OpenApi\Attributes as OA;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 #[OA\Tag(name: 'Notes', description: 'Manage Notes Endpoints')]
 #[Route('/api')]
 class NoteController extends AbstractFOSRestController
 {
-    private EntityManagerInterface $entityManager;
-    private ValidatorInterface $validator;
-
     private NoteService $noteService;
 
-    public function __construct(EntityManagerInterface $entityManager,
-                                ValidatorInterface $validator, NoteService $noteService)
+    public function __construct(NoteService $noteService)
     {
-        $this->entityManager = $entityManager;
-        $this->validator = $validator;
         $this->noteService = $noteService;
     }
 
@@ -93,7 +85,7 @@ class NoteController extends AbstractFOSRestController
     )]
     public function getNotes(): Response
     {
-        $notes = $this->entityManager->getRepository(Note::class)->findAll();
+        $notes = $this->noteService->getNotes();
         $view = $this->view($notes, Response::HTTP_OK);
         return $this->handleView($view);
     }
@@ -119,12 +111,11 @@ class NoteController extends AbstractFOSRestController
     )]
     public function getNote(int $id): Response
     {
-        $note = $this->entityManager->getRepository(Note::class)->find($id);
-        if($note != null) {
-            $view = $this->view($note, Response::HTTP_OK);
+        $result = $this->noteService->getNote($id);
+        if($result instanceof Note) {
+            $view = $this->view($result, Response::HTTP_OK);
         } else {
-            $apiError = new ApiError(Response::HTTP_NOT_FOUND, "Note not found.");
-            $view = $this->view($apiError, Response::HTTP_NOT_FOUND);
+            $view = $this->view($result, Response::HTTP_NOT_FOUND);
         }
         return $this->handleView($view);
     }
@@ -157,35 +148,19 @@ class NoteController extends AbstractFOSRestController
     )]
     public function updateNote(int $id, Request $request): Response
     {
-        $note = $this->entityManager->getRepository(Note::class)->find($id);
-        if($note != null) {
+        $createNoteDto = new CreateNoteDto(
+            $request->request->get('title'),
+            $request->request->get('content'),
+            $request->request->get('tag')
+        );
 
-            $data = json_decode($request->getContent(), true);
-            $note->setTitle($data['title']);
-            $note->setContent($data['content']);
-            $note->setTag($data['tag']);
-
-            $errors = $this->validator->validate($note);
-
-            if (count($errors) > 0) {
-                $errorMessages = [];
-                foreach ($errors as $error) {
-                    $errorMessages[] = [
-                        'message' => $error->getMessage()
-                    ];
-                }
-
-                $jsonErrorMessage = json_encode($errorMessages, JSON_PRETTY_PRINT);
-                return new Response($jsonErrorMessage, Response::HTTP_BAD_REQUEST);
-            } else {
-                $this->entityManager->persist($note);
-                $this->entityManager->flush();
-                $view = $this->view($note, Response::HTTP_OK);
-                return $this->handleView($view);
-            }
+        $result = $this->noteService->updateNote($id, $createNoteDto);
+        if($result instanceof Note) {
+            $view = $this->view($result, Response::HTTP_OK);
+        } elseif ($result instanceof ApiError) {
+            $view = $this->view($result, Response::HTTP_NOT_FOUND);
         } else {
-            $apiError = new ApiError(Response::HTTP_NOT_FOUND, "Note not found.");
-            $view = $this->view($apiError, Response::HTTP_NOT_FOUND);
+            $view = $this->view($result, Response::HTTP_BAD_REQUEST);
         }
         return $this->handleView($view);
     }
@@ -208,14 +183,10 @@ class NoteController extends AbstractFOSRestController
     )]
     public function deleteNote(int $id): Response
     {
-        $note = $this->entityManager->getRepository(Note::class)->find($id);
-        if($note != null) {
-            $this->entityManager->remove($note);
-            $this->entityManager->flush();
+        if($this->noteService->deleteNote($id) == null) {
             $view = $this->view(null, Response::HTTP_NO_CONTENT);
         } else {
-            $apiError = new ApiError(Response::HTTP_NOT_FOUND, "Note not found.");
-            $view = $this->view($apiError, Response::HTTP_NOT_FOUND);
+            $view = $this->view($this->noteService->deleteNote($id), Response::HTTP_NOT_FOUND);
         }
         return $this->handleView($view);
     }
