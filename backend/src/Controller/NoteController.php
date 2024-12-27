@@ -64,7 +64,15 @@ class NoteController extends AbstractFOSRestController
         $result = $this->noteService->createNote($createNoteDto);
 
         if ($result instanceof Note) {
-            $view = $this->view($result, Response::HTTP_CREATED);
+            // Convert Note into NoteDTO
+            $newNoteDto = new NoteDto();
+            $newNoteDto->setId($result->getId());
+            $newNoteDto->setTitle($result->getTitle());
+            $newNoteDto->setContent($result->getContent());
+            $newNoteDto->setCreationDate($result->getCreationDate());
+            $newNoteDto->setFolderId($result->getFolder()->getId());
+            $newNoteDto->setTag($result->getTag());
+            $view = $this->view($newNoteDto, Response::HTTP_CREATED);
         } else {
             $view = $this->view($result, Response::HTTP_BAD_REQUEST);
         }
@@ -87,7 +95,19 @@ class NoteController extends AbstractFOSRestController
     public function getNotes(): Response
     {
         $notes = $this->noteService->getNotes();
-        $view = $this->view($notes, Response::HTTP_OK);
+        // Convert Note into NoteDTO
+        $notesArray = array();
+        foreach ($notes as $note) {
+            $newNoteDto = new NoteDto();
+            $newNoteDto->setId($note->getId());
+            $newNoteDto->setTitle($note->getTitle());
+            $newNoteDto->setContent($note->getContent());
+            $newNoteDto->setCreationDate($note->getCreationDate());
+            $newNoteDto->setFolderId($note->getFolder()->getId());
+            $newNoteDto->setTag($note->getTag());
+            $notesArray[] = $newNoteDto;
+        }
+        $view = $this->view($notesArray, Response::HTTP_OK);
         return $this->handleView($view);
     }
 
@@ -114,7 +134,15 @@ class NoteController extends AbstractFOSRestController
     {
         $result = $this->noteService->getNote($id);
         if($result instanceof Note) {
-            $view = $this->view($result, Response::HTTP_OK);
+            // Convert Note into NoteDTO
+            $newNoteDto = new NoteDto();
+            $newNoteDto->setId($result->getId());
+            $newNoteDto->setTitle($result->getTitle());
+            $newNoteDto->setContent($result->getContent());
+            $newNoteDto->setCreationDate($result->getCreationDate());
+            $newNoteDto->setFolderId($result->getFolder()->getId());
+            $newNoteDto->setTag($result->getTag());
+            $view = $this->view($newNoteDto, Response::HTTP_OK);
         } else {
             $view = $this->view($result, Response::HTTP_NOT_FOUND);
         }
@@ -158,7 +186,15 @@ class NoteController extends AbstractFOSRestController
 
         $result = $this->noteService->updateNote($id, $createNoteDto);
         if($result instanceof Note) {
-            $view = $this->view($result, Response::HTTP_OK);
+            // Convert Note into NoteDTO
+            $newNoteDto = new NoteDto();
+            $newNoteDto->setId($result->getId());
+            $newNoteDto->setTitle($result->getTitle());
+            $newNoteDto->setContent($result->getContent());
+            $newNoteDto->setCreationDate($result->getCreationDate());
+            $newNoteDto->setFolderId($result->getFolder()->getId());
+            $newNoteDto->setTag($result->getTag());
+            $view = $this->view($newNoteDto, Response::HTTP_OK);
         } elseif ($result instanceof ApiError) {
             $view = $this->view($result, Response::HTTP_NOT_FOUND);
         } else {

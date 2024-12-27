@@ -39,6 +39,9 @@ class NoteService
             } else {
                 return new ApiError(Response::HTTP_NOT_FOUND, "Folder not found.");
             }
+        } else {
+            $folder = $this->entityManager->getRepository(Folder::class)->findOneBy(['id' => 1]); // Default folder id
+            $note->setFolder($folder);
         }
 
         if ($this->validatorService->validate($note) !== []) {
@@ -91,6 +94,9 @@ class NoteService
                 } else {
                     return new ApiError(Response::HTTP_NOT_FOUND, "Folder not found.");
                 }
+            } else {
+                $folder = $this->entityManager->getRepository(Folder::class)->findOneBy(['id' => 1]); // Default folder id
+                $note->setFolder($folder);
             }
 
             if ($this->validatorService->validate($note) !== []) {

@@ -3,7 +3,6 @@
 namespace App\Dto;
 
 use OpenApi\Attributes as OA;
-use Symfony\Component\Validator\Constraints as Assert;
 
 class NoteDto
 {
