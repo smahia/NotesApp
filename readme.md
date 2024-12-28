@@ -10,4 +10,13 @@ This is a note-taking app that allows you to create and delete notes, even organ
 
 **Database**: SQLite.
 
+## How to run the project
+
+1. Clone the repository.
+2. Run `composer install` and `symfony server:start` in the backend folder.
+3. Run `npm install` and `npm run dev` in the frontend folder.
+4. Go to http://localhost:5173/ in your browser.
+
+In order to run these commands, you need to have Node.js and Composer installed.
+
 
