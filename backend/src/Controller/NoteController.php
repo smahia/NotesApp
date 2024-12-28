@@ -38,7 +38,7 @@ class NoteController extends AbstractFOSRestController
         response: 200,
         description: 'Successfull operation.',
         content: new OA\JsonContent(
-            ref: new Model(type: CreateNoteDto::class),
+            ref: new Model(type: NoteDto::class),
         )
     )]
     #[OA\Response(
@@ -80,7 +80,7 @@ class NoteController extends AbstractFOSRestController
 
     }
 
-    /** Get all Notes resource.
+    /** Get all Notes resources.
      * @return Response
      */
     #[Rest\Get('/note', name: 'app_get_notes')]
