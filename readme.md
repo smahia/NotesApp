@@ -6,7 +6,7 @@ This is a note-taking app that allows you to create and delete notes, even organ
 
 **Backend**: Symfony 7.2.0.
 
-**Frontend**: React.
+**Frontend**: React 18.3.
 
 **Database**: SQLite.
 
