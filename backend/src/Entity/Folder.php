@@ -23,7 +23,7 @@ class Folder
     /**
      * @var Collection<int, Note>
      */
-    #[ORM\OneToMany(targetEntity: Note::class, mappedBy: 'folder')]
+    #[ORM\OneToMany(targetEntity: Note::class, mappedBy: 'folder', orphanRemoval: true)]
     private Collection $notes;
 
     public function __construct()
